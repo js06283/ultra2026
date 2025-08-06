@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Elements Festival Planner</title>
+		<link rel="stylesheet" href="styles.css" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<!-- Firebase SDK -->
+		<script type="module" src="firebase-config.js"></script>
+		<!-- CSV Parser and Schedule Loader -->
+		<script src="csv-parser.js"></script>
+		<script src="load-schedule.js"></script>
+	</head>
+	<body>
+		<div class="container">
+			<header class="header">
+				<h1>🎵 Elements Festival Planner</h1>
+				<div class="name-input-section">
+					<select id="nameSelect" class="name-select">
+						<option value="">Select a name...</option>
+						<option value="Jess">Jess</option>
+						<option value="Theo">Theo</option>
+						<option value="Andy">Andy</option>
+						<option value="Noel">Noel</option>
+						<option value="Kevin">Kevin</option>
+						<option value="Ellen">Ellen</option>
+						<option value="PJ">PJ</option>
+						<option value="custom">Other (enter custom name)</option>
+					</select>
+					<input
+						type="text"
+						id="nameInput"
+						placeholder="Enter custom name..."
+						maxlength="50"
+						style="display: none"
+					/>
+					<button id="addNameBtn" class="btn-primary">Add Name</button>
+				</div>
+				<div class="view-controls">
+					<div class="day-toggles">
+						<button class="day-toggle active" data-day="all">All Days</button>
+						<button class="day-toggle" data-day="friday">Friday</button>
+						<button class="day-toggle" data-day="saturday">Saturday</button>
+						<button class="day-toggle" data-day="sunday">Sunday</button>
+					</div>
+					<div class="view-toggles">
+						<button id="myScheduleToggle" class="btn-secondary">
+							My Schedule
+						</button>
+						<button id="chronologicalToggle" class="btn-secondary">
+							Chronological
+						</button>
+					</div>
+				</div>
+			</header>
+
+			<div class="festival-grid">
+				<!-- Loading placeholder - will be replaced by real schedule -->
+				<div class="loading-placeholder">
+					<div class="loading-spinner"></div>
+					<p>Loading Elements Festival schedule...</p>
+				</div>
+			</div>
+		</div>
+
+		<script src="script.js"></script>
+	</body>
+</html>
