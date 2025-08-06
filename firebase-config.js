@@ -23,15 +23,16 @@ async function initializeFirebase() {
 
 		// Your Firebase configuration object
 		// Replace these values with your actual Firebase project configuration
-		// For production, consider using environment variables
+		// NOTE: These are public keys and are safe to expose in client-side code
+		// Firebase security is handled through Firestore Security Rules and Authentication
 		const firebaseConfig = {
-			apiKey: process.env.FIREBASE_API_KEY || "REDACTED_FIREBASE_API_KEY",
-			authDomain: process.env.FIREBASE_AUTH_DOMAIN || "elements-0.firebaseapp.com",
-			projectId: process.env.FIREBASE_PROJECT_ID || "elements-0",
-			storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "elements-0.firebasestorage.app",
-			messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "738816284498",
-			appId: process.env.FIREBASE_APP_ID || "1:738816284498:web:9ec55c7a5c4e10d8e38c8b",
-			measurementId: process.env.FIREBASE_MEASUREMENT_ID || "G-SML6M24HHY",
+			apiKey: "REDACTED_FIREBASE_API_KEY",
+			authDomain: "elements-0.firebaseapp.com",
+			projectId: "elements-0",
+			storageBucket: "elements-0.firebasestorage.app",
+			messagingSenderId: "738816284498",
+			appId: "1:738816284498:web:9ec55c7a5c4e10d8e38c8b",
+			measurementId: "G-SML6M24HHY",
 		};
 
 		// Initialize Firebase
