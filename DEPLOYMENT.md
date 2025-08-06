@@ -63,7 +63,87 @@ This guide will help you deploy your Elements Festival Planner application to Ve
    - Confirm deployment settings
    - Deploy!
 
-## Environment Variables (Optional)
+## Firebase Configuration for Deployment
+
+### Common Deployment Issues
+
+If Firebase works locally but not in production, it's usually due to one of these issues:
+
+1. **Domain Not Authorized** (Most Common)
+2. **HTTPS/HTTP Protocol Issues**
+3. **CORS Configuration**
+4. **Firestore Security Rules**
+
+### Fixing Domain Authorization
+
+1. **Go to Firebase Console**:
+
+   - Visit [Firebase Console](https://console.firebase.google.com/)
+   - Select your project (`elements-0`)
+
+2. **Add Authorized Domains**:
+
+   - Click the gear icon (⚙️) next to "Project Overview"
+   - Select "Project settings"
+   - Scroll down to "Your apps" section
+   - Click on your web app
+   - Scroll down to "Authorized domains"
+   - Click "Add domain"
+   - Add your deployed domain (e.g., `your-project-name.vercel.app`)
+
+3. **Alternative: Add All Domains** (for testing):
+   - Add `localhost` (for local development)
+   - Add `*.vercel.app` (for all Vercel deployments)
+   - Add your specific domain
+
+### Example Domain Configuration
+
+```
+Authorized domains:
+- localhost
+- your-project-name.vercel.app
+- your-custom-domain.com (if using custom domain)
+```
+
+### Testing Firebase in Production
+
+1. **Check Browser Console**:
+
+   - Open your deployed site
+   - Open browser developer tools (F12)
+   - Check the console for Firebase-related messages
+
+2. **Expected Messages**:
+
+   - ✅ "Firebase initialized successfully" - Firebase is working
+   - ⚠️ "Firebase not available, falling back to localStorage" - Domain not authorized
+   - ❌ Error messages - Check the specific error
+
+3. **Common Error Messages**:
+   - `permission-denied` - Check Firestore security rules
+   - `unavailable` - Check internet connection
+   - `CORS` - Domain not authorized
+   - `auth` - Firebase configuration issue
+
+### Firestore Security Rules
+
+Make sure your Firestore security rules allow access:
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /attendees/{document} {
+      allow read, write: if true; // Allow all access for now
+    }
+    match /comments/{document} {
+      allow read, write: if true; // Allow all access for now
+    }
+  }
+}
+```
+
+### Environment Variables (Optional)
 
 If you're using Firebase, you might want to set environment variables in Vercel:
 
@@ -111,13 +191,21 @@ Your deployment will include these key files:
    - Check that all file paths are correct
 
 3. **CORS Issues**:
+
    - Vercel handles CORS automatically for static sites
    - If you're loading external resources, ensure they allow CORS
+
+4. **Firebase Not Working in Production**:
+   - Check if the domain is authorized in Firebase project settings
+   - Verify Firestore security rules allow access
+   - Check browser console for specific error messages
+   - Ensure HTTPS is being used (Firebase requires HTTPS in production)
 
 ### Support
 
 - [Vercel Documentation](https://vercel.com/docs)
 - [Vercel Support](https://vercel.com/support)
+- [Firebase Documentation](https://firebase.google.com/docs)
 
 ## Post-Deployment
 
@@ -128,12 +216,25 @@ After successful deployment:
    - Visit your deployed URL
    - Test all features (comments, schedule, etc.)
    - Check mobile responsiveness
+   - Verify Firebase functionality (if configured)
 
 2. **Monitor Performance**:
 
    - Use Vercel Analytics (if enabled)
    - Check for any console errors
+   - Monitor Firebase usage in Firebase Console
 
 3. **Share Your App**:
    - Share the Vercel URL with your team
    - Consider adding a custom domain for easier access
+
+## Firebase Deployment Checklist
+
+- [ ] Firebase project created and configured
+- [ ] Firestore database enabled
+- [ ] Security rules configured
+- [ ] Domain authorized in Firebase project settings
+- [ ] Firebase configuration updated in `firebase-config.js`
+- [ ] Tested locally with Firebase
+- [ ] Tested deployed version with Firebase
+- [ ] Fallback to localStorage working (if Firebase fails)

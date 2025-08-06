@@ -27,13 +27,57 @@ class FestivalPlanner {
 	}
 
 	async init() {
+		// Wait for Firebase to be available
+		let attempts = 0;
+		const maxAttempts = 50; // Wait up to 5 seconds (50 * 100ms)
+
+		while (!window.FirebaseService && attempts < maxAttempts) {
+			await new Promise((resolve) => setTimeout(resolve, 100));
+			attempts++;
+		}
+
 		// Initialize Firebase service
 		if (window.FirebaseService) {
-			this.firebaseService = new window.FirebaseService();
-			await this.loadData();
-			this.setupRealTimeListener();
+			try {
+				this.firebaseService = new window.FirebaseService();
+
+				// Test Firebase connection
+				const connectionTest = await this.firebaseService.testConnection();
+				if (!connectionTest) {
+					console.warn(
+						"Firebase connection test failed, falling back to localStorage"
+					);
+					console.warn(
+						"This is normal for deployed versions if the domain is not authorized in Firebase project settings."
+					);
+
+					// Run diagnostics to help identify the issue
+					const issues = await this.firebaseService.diagnoseIssues();
+					if (issues.length > 0) {
+						console.warn("Firebase deployment issues detected:");
+						issues.forEach((issue) => console.warn("- " + issue));
+					}
+
+					this.firebaseService = null;
+					this.loadData();
+				} else {
+					await this.loadData();
+					this.setupRealTimeListener();
+					console.log("Firebase initialized successfully");
+				}
+			} catch (error) {
+				console.error("Error initializing Firebase service:", error);
+				console.warn(
+					"Falling back to localStorage due to Firebase initialization error"
+				);
+				this.firebaseService = null;
+				this.loadData();
+			}
 		} else {
 			console.warn("Firebase not available, falling back to localStorage");
+			console.warn(
+				"This is normal for deployed versions if Firebase is not configured or the domain is not authorized."
+			);
 			this.loadData();
 		}
 		this.setupEventListeners();

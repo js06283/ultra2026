@@ -4,6 +4,10 @@ let FirebaseService = null;
 // Function to initialize Firebase
 async function initializeFirebase() {
 	try {
+		console.log("Starting Firebase initialization...");
+		console.log("Current domain:", window.location.hostname);
+		console.log("Current protocol:", window.location.protocol);
+
 		// Import Firebase modules
 		const { initializeApp } = await import(
 			"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"
@@ -21,6 +25,8 @@ async function initializeFirebase() {
 			"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
 		);
 
+		console.log("Firebase modules imported successfully");
+
 		// Your Firebase configuration object
 		// Replace these values with your actual Firebase project configuration
 		// NOTE: These are public keys and are safe to expose in client-side code
@@ -35,9 +41,11 @@ async function initializeFirebase() {
 			measurementId: "G-SML6M24HHY",
 		};
 
+		console.log("Initializing Firebase app...");
 		// Initialize Firebase
 		const app = initializeApp(firebaseConfig);
 		const db = getFirestore(app);
+		console.log("Firebase app initialized successfully");
 
 		// Database collections
 		const COLLECTIONS = {
@@ -47,11 +55,68 @@ async function initializeFirebase() {
 			COMMENTS: "comments",
 		};
 
+		console.log("Creating Firebase service class...");
 		// Firebase service class
 		return class {
 			constructor() {
 				this.db = db;
 				this.collections = COLLECTIONS;
+				console.log("Firebase service class created");
+			}
+
+			// Test Firebase connectivity
+			async testConnection() {
+				try {
+					console.log("Testing Firebase connection...");
+					console.log("Testing from domain:", window.location.hostname);
+					console.log("Testing from protocol:", window.location.protocol);
+					
+					const testDoc = doc(this.db, "test", "connection");
+					await setDoc(testDoc, { timestamp: new Date().toISOString() });
+					await deleteDoc(testDoc);
+					console.log("Firebase connection test successful");
+					return true;
+				} catch (error) {
+					console.error("Firebase connection test failed:", error);
+					
+					// Provide helpful error messages for common issues
+					if (error.code === 'permission-denied') {
+						console.error("Permission denied. Check Firestore security rules.");
+					} else if (error.code === 'unavailable') {
+						console.error("Firebase service unavailable. Check your internet connection.");
+					} else if (error.message && error.message.includes('CORS')) {
+						console.error("CORS error. Check if the domain is authorized in Firebase project settings.");
+					} else if (error.message && error.message.includes('auth')) {
+						console.error("Authentication error. Check Firebase project configuration.");
+					}
+					
+					return false;
+				}
+			}
+
+			// Diagnostic method to help identify deployment issues
+			async diagnoseIssues() {
+				const issues = [];
+				
+				// Check domain
+				const domain = window.location.hostname;
+				if (domain !== 'localhost' && domain !== '127.0.0.1') {
+					issues.push(`Domain '${domain}' might not be authorized in Firebase project settings`);
+				}
+				
+				// Check protocol
+				const protocol = window.location.protocol;
+				if (protocol !== 'https:' && domain !== 'localhost' && domain !== '127.0.0.1') {
+					issues.push('Firebase requires HTTPS in production environments');
+				}
+				
+				// Test connection
+				const connectionTest = await this.testConnection();
+				if (!connectionTest) {
+					issues.push('Firebase connection test failed');
+				}
+				
+				return issues;
 			}
 
 			// Save attendee data for a specific show
@@ -388,17 +453,30 @@ async function initializeFirebase() {
 			}
 		};
 	} catch (error) {
+		console.error("Firebase initialization failed:", error);
+		console.error("Error details:", {
+			name: error.name,
+			message: error.message,
+			stack: error.stack,
+		});
 		console.warn("Firebase not available:", error.message);
 		return null;
 	}
 }
 
 // Initialize Firebase and export the service
+console.log("Starting Firebase service initialization...");
 initializeFirebase()
 	.then((serviceClass) => {
-		window.FirebaseService = serviceClass;
+		if (serviceClass) {
+			window.FirebaseService = serviceClass;
+			console.log("Firebase service initialized and exported successfully");
+		} else {
+			console.warn("Firebase service class is null");
+			window.FirebaseService = null;
+		}
 	})
 	.catch((error) => {
-		console.warn("Failed to initialize Firebase:", error);
+		console.error("Failed to initialize Firebase:", error);
 		window.FirebaseService = null;
 	});
