@@ -379,8 +379,7 @@ class FestivalPlanner {
 						section.style.display = "block";
 						// Only show the shows the user is attending
 						this.filterShowsForMySchedule(section);
-						// Sort shows within each stage
-						this.sortShowsInStages(section);
+						// No sorting - preserve original order
 					} else {
 						section.style.display = "none";
 					}
@@ -400,8 +399,7 @@ class FestivalPlanner {
 				if (shouldShowDay) {
 					section.style.display = "block";
 					this.showAllShows(section);
-					// Sort shows within each stage
-					this.sortShowsInStages(section);
+					// No sorting - preserve original order
 				} else {
 					section.style.display = "none";
 				}
@@ -1609,58 +1607,6 @@ class FestivalPlanner {
 
 		// Add the message to the container
 		container.appendChild(messageElement);
-	}
-
-	// Sort shows within each stage using late-night logic
-	sortShowsInStages(section) {
-		const stages = section.querySelectorAll(".stage");
-		const dayTitle = section.querySelector(".day-title").textContent;
-
-		stages.forEach((stage) => {
-			const shows = Array.from(stage.querySelectorAll(".show"));
-			const showsContainer = stage.querySelector(".shows");
-
-			if (!showsContainer) return;
-
-			// Sort shows using late-night logic
-			shows.sort((a, b) => {
-				const timeA = a.querySelector(".show-time").textContent;
-				const timeB = b.querySelector(".show-time").textContent;
-
-				const resultA = this.parseTimeForSorting(timeA, dayTitle);
-				const resultB = this.parseTimeForSorting(timeB, dayTitle);
-
-				// For stage view, we want to sort by time within the same day
-				// Late-night shows should appear after regular shows
-				if (resultA.adjustedDay !== resultB.adjustedDay) {
-					// If adjusted days are different, sort by day first
-					const dayOrder = { Friday: 1, Saturday: 2, Sunday: 3 };
-					const dayA = dayOrder[resultA.adjustedDay] || 0;
-					const dayB = dayOrder[resultB.adjustedDay] || 0;
-					return dayA - dayB;
-				} else {
-					// Same adjusted day, sort by time
-					// For late-night shows, we want them to appear after regular shows
-					// So we need to check if one is late-night and the other isn't
-					const isLateNightA = this.isLateNightShow(timeA);
-					const isLateNightB = this.isLateNightShow(timeB);
-
-					if (isLateNightA && !isLateNightB) {
-						return 1; // A is late-night, B is not, so A should come after B
-					} else if (!isLateNightA && isLateNightB) {
-						return -1; // A is not late-night, B is, so A should come before B
-					} else {
-						// Both are either late-night or not late-night, sort by time
-						return resultA.timeInMinutes - resultB.timeInMinutes;
-					}
-				}
-			});
-
-			// Re-append shows in sorted order
-			shows.forEach((show) => {
-				showsContainer.appendChild(show);
-			});
-		});
 	}
 
 	// Helper method to check if a show is late-night (12am-6am)

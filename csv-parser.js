@@ -4,6 +4,8 @@ class FestivalScheduleParser {
 		this.schedule = new Map();
 		this.stages = new Set();
 		this.days = new Set();
+		this.stageOrder = []; // Track stage order as they appear in CSV
+		this.showOrder = new Map(); // Track show order for each stage
 	}
 
 	// Parse CSV data
@@ -29,7 +31,7 @@ class FestivalScheduleParser {
 			}
 		}
 
-		return this.getSchedule();
+		return this.getOriginalSchedule();
 	}
 
 	// Parse CSV line (handles commas within quotes and special characters)
@@ -60,6 +62,11 @@ class FestivalScheduleParser {
 		this.days.add(day);
 		this.stages.add(stage);
 
+		// Track stage order (only add if not already added)
+		if (!this.stageOrder.includes(stage)) {
+			this.stageOrder.push(stage);
+		}
+
 		if (!this.schedule.has(day)) {
 			this.schedule.set(day, new Map());
 		}
@@ -68,14 +75,20 @@ class FestivalScheduleParser {
 			this.schedule.get(day).set(stage, []);
 		}
 
-		this.schedule
-			.get(day)
-			.get(stage)
-			.push({
-				time: time,
-				artist: artist,
-				id: this.generateShowId(day, stage, artist, time),
-			});
+		const show = {
+			time: time,
+			artist: artist,
+			id: this.generateShowId(day, stage, artist, time),
+		};
+
+		this.schedule.get(day).get(stage).push(show);
+
+		// Track show order for this stage
+		const stageKey = `${day}-${stage}`;
+		if (!this.showOrder.has(stageKey)) {
+			this.showOrder.set(stageKey, []);
+		}
+		this.showOrder.get(stageKey).push(show.id);
 	}
 
 	// Generate a unique show ID
@@ -138,6 +151,41 @@ class FestivalScheduleParser {
 		}
 
 		return sortedSchedule;
+	}
+
+	// Get schedule in original order (no sorting)
+	getOriginalSchedule() {
+		const originalSchedule = new Map();
+
+		// Sort days (keep this for consistent day order)
+		const sortedDays = Array.from(this.days).sort((a, b) => {
+			return this.getDayNumber(a) - this.getDayNumber(b);
+		});
+
+		for (const day of sortedDays) {
+			originalSchedule.set(day, new Map());
+
+			// Get stages in the order they appear in the CSV
+			const stageOrder = this.getStageOrderForDay(day);
+			
+			for (const stage of stageOrder) {
+				if (this.schedule.has(day) && this.schedule.get(day).has(stage)) {
+					// Keep shows in original order (no sorting)
+					const shows = this.schedule.get(day).get(stage);
+					originalSchedule.get(day).set(stage, shows);
+				}
+			}
+		}
+
+		return originalSchedule;
+	}
+
+	// Get stage order for a specific day based on CSV order
+	getStageOrderForDay(day) {
+		// Use the tracked stage order from the CSV
+		return this.stageOrder.filter(stage => 
+			this.schedule.has(day) && this.schedule.get(day).has(stage)
+		);
 	}
 
 	// Parse time string to minutes for sorting
@@ -313,7 +361,7 @@ class FestivalScheduleParser {
 
 	// Generate HTML for the festival schedule
 	generateHTML() {
-		const schedule = this.getSchedule();
+		const schedule = this.getOriginalSchedule();
 		let html = "";
 
 		for (const [day, stages] of schedule) {
