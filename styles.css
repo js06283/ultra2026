@@ -230,7 +230,6 @@ body {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px;
-	margin-right: 50px; /* Add more space for the comments button */
 }
 
 /* Stage colors for chronological view */

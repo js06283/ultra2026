@@ -142,12 +142,16 @@ class FestivalPlanner {
 				nameSelect.style.width = "200px";
 				this.currentName = selectedValue;
 				this.showNotification(`Selected: ${selectedValue}`, "success");
+				// Apply filters to update the display immediately
+				this.applyFilters();
 			} else {
 				// No selection, hide custom input
 				nameInput.style.display = "none";
 				nameInput.value = "";
 				nameSelect.style.width = "200px";
 				this.currentName = "";
+				// Apply filters to update the display immediately
+				this.applyFilters();
 			}
 		});
 
@@ -235,6 +239,9 @@ class FestivalPlanner {
 		nameInput.value = "";
 		nameInput.style.display = "none";
 		nameSelect.style.width = "200px";
+
+		// Apply filters to update the display immediately
+		this.applyFilters();
 	}
 
 	// Remove the choose person message
@@ -1399,49 +1406,20 @@ class FestivalPlanner {
 			<div class="chronological-show-stage">${show.stage} Stage</div>
 		`;
 
+		// Create attendees section (empty - will be populated by renderAttendees)
+		const attendeesSection = document.createElement("div");
+		attendeesSection.className = "chronological-show-attendees";
+
 		// Create day badge - use originalDay for display
 		const dayBadge = document.createElement("div");
 		dayBadge.className = "chronological-show-day";
 		dayBadge.textContent = show.originalDay || show.day;
 
-		// Create attendees section (empty - will be populated by renderAttendees)
-		const attendeesSection = document.createElement("div");
-		attendeesSection.className = "chronological-show-attendees";
-
-		// Create comments section
-		const commentsSection = document.createElement("div");
-		commentsSection.className = "comments-section";
-
-		// Add comments toggle button
-		const commentsToggle = document.createElement("button");
-		commentsToggle.className = "comments-toggle-btn";
-		const commentCount = this.comments.has(show.id)
-			? this.comments.get(show.id).length
-			: 0;
-
-		// Only show the comment count badge if there are comments
-		const countBadge =
-			commentCount > 0
-				? `<span class="comments-count">${commentCount}</span>`
-				: "";
-		commentsToggle.innerHTML = `
-			<span class="comments-icon">💬</span>
-			${countBadge}
-		`;
-
-		commentsToggle.addEventListener("click", (e) => {
-			e.stopPropagation();
-			this.toggleComments(show.id);
-		});
-
-		commentsSection.appendChild(commentsToggle);
-
-		// Assemble the element
+		// Assemble the element - reordered so attendees come before day badge
 		showElement.appendChild(artistBox);
 		showElement.appendChild(showInfo);
-		showElement.appendChild(dayBadge);
 		showElement.appendChild(attendeesSection);
-		showElement.appendChild(commentsSection);
+		showElement.appendChild(dayBadge);
 
 		// Add click handler for toggling attendance
 		showElement.addEventListener("click", () => {

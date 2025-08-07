@@ -390,6 +390,13 @@ async function initializeFirebase() {
 						});
 					});
 
+					// Sort comments by timestamp
+					commentsMap.forEach((comments, showId) => {
+						comments.sort(
+							(a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+						);
+					});
+
 					return commentsMap;
 				} catch (error) {
 					console.error("Error getting all comments data:", error);
@@ -422,6 +429,37 @@ async function initializeFirebase() {
 						});
 
 						callback(attendeesMap, statesMap);
+					}
+				);
+			}
+
+			// Listen to real-time changes in comments data
+			onCommentsChange(callback) {
+				return onSnapshot(
+					collection(this.db, this.collections.COMMENTS),
+					(snapshot) => {
+						const commentsMap = new Map();
+
+						snapshot.forEach((doc) => {
+							const data = doc.data();
+							if (!commentsMap.has(data.showId)) {
+								commentsMap.set(data.showId, []);
+							}
+							commentsMap.get(data.showId).push({
+								name: data.name,
+								text: data.text,
+								timestamp: data.timestamp,
+							});
+						});
+
+						// Sort comments by timestamp
+						commentsMap.forEach((comments, showId) => {
+							comments.sort(
+								(a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+							);
+						});
+
+						callback(commentsMap);
 					}
 				);
 			}
